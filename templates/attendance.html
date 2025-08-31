@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="attendance-container">
+    <div class="attendance-header">
+        <h2><i class="fas fa-calendar-check"></i> Mark Attendance</h2>
+        <p class="subtitle">Use face recognition to record student attendance</p>
+    </div>
+
+    <div class="attendance-content">
+        <!-- Camera and Recognition Section -->
+        <div class="recognition-card">
+            <div class="card-header">
+                <h3><i class="fas fa-video"></i> Live Face Recognition</h3>
+                <div class="status-indicator active">
+                    <span class="status-dot"></span>
+                    <span>Camera Active</span>
+                </div>
+            </div>
+            
+            <div class="camera-feed-container">
+                <div class="camera-frame">
+                    <img src="{{ url_for('video_feed') }}" class="camera-feed" alt="Live Camera Feed">
+                    <div class="face-guide"></div>
+                </div>
+            </div>
+
+            <div class="recognition-controls">
+                <form method="POST" action="{{ url_for('mark_attendance') }}" class="attendance-form">
+                   <!-- Change this part in your attendance.html -->
+<select name="module" id="module" class="form-select" required>
+    <option value="">Choose a module...</option>
+    {% for module in modules %}
+        <option value="{{ module.id }}">{{ module.name }}</option>
+    {% endfor %}
+</select>
+                    
+                    <button type="submit" class="recognition-btn">
+                        <i class="fas fa-user-check"></i> Start Recognition
+                        <span class="processing-indicator">
+                            <span class="spinner"></span>
+                            <span>Processing</span>
+                        </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Recognition Guide Section -->
+        <div class="guide-card">
+            <div class="card-header">
+                <h3><i class="fas fa-info-circle"></i> Recognition Guide</h3>
+            </div>
+            
+            <div class="guide-content">
+                <div class="visual-guide">
+                    <div class="face-circle">
+                        <div class="scan-line" style="--angle: 0deg;"></div>
+                        <div class="scan-line" style="--angle: 45deg;"></div>
+                        <div class="scan-line" style="--angle: 90deg;"></div>
+                        <div class="scan-line" style="--angle: 135deg;"></div>
+                    </div>
+                </div>
+                
+                <ol class="guide-steps">
+                    <li>
+                        <i class="fas fa-user"></i>
+                        <span>Position face in the center frame</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Ensure good lighting conditions</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-eye"></i>
+                        <span>Look directly at the camera</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-stopwatch"></i>
+                        <span>Hold still during scanning</span>
+                    </li>
+                </ol>
+            </div>
+            
+            <div class="stats-section">
+                <div class="stat-item">
+                    <div class="stat-value">{{ student_count }}</div>
+                    <div class="stat-label">Registered Students</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ today_attendance }}</div>
+                    <div class="stat-label">Today's Attendance</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --accent-color: #4cc9f0;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    --border-color: #e0e0e0;
+}
+
+.attendance-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.attendance-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.attendance-header h2 {
+    font-size: 2rem;
+    color: var(--dark-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.attendance-header .subtitle {
+    color: var(--dark-color);
+    opacity: 0.8;
+    font-size: 1.1rem;
+}
+
+.attendance-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+.recognition-card, .guide-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 18px 25px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 5px 10px;
+    border-radius: 20px;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--success-color);
+}
+
+.status-indicator.active .status-dot {
+    animation: pulse 1.5s infinite;
+}
+
+.camera-feed-container {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    background: #f5f7fa;
+}
+
+.camera-frame {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.camera-feed {
+    width: 100%;
+    display: block;
+}
+
+.face-guide {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    height: 70%;
+    border: 3px dashed rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.recognition-controls {
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.attendance-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: var(--dark-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-select {
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+}
+
+.recognition-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.recognition-btn:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+}
+
+.processing-indicator {
+    display: none;
+    align-items: center;
+    gap: 8px;
+}
+
+.recognition-btn.processing .processing-indicator {
+    display: flex;
+}
+
+.recognition-btn.processing .fa-user-check {
+    display: none;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s linear infinite;
+}
+
+.guide-content {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.visual-guide {
+    display: flex;
+    justify-content: center;
+}
+
+.face-circle {
+    width: 150px;
+    height: 150px;
+    border: 3px solid var(--primary-color);
+    border-radius: 50%;
+    position: relative;
+    animation: pulse 2s infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scan-line {
+    position: absolute;
+    width: 3px;
+    height: 50%;
+    background: var(--primary-color);
+    left: 50%;
+    top: 50%;
+    transform-origin: top center;
+    transform: rotate(var(--angle)) translateY(-100%);
+    opacity: 0.7;
+    animation: scan 2s linear infinite;
+    animation-delay: calc(var(--angle) / 90 * 0.5s);
+}
+
+.guide-steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.guide-steps li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    color: var(--dark-color);
+}
+
+.guide-steps i {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    width: 24px;
+    text-align: center;
+}
+
+.stats-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.stat-item {
+    background: var(--light-color);
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--dark-color);
+    opacity: 0.8;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(67, 97, 238, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
+}
+
+@keyframes scan {
+    0% { height: 0%; opacity: 0; }
+    50% { height: 50%; opacity: 1; }
+    100% { height: 0%; opacity: 0; }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 992px) {
+    .attendance-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .attendance-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .status-indicator {
+        align-self: flex-start;
+    }
+    
+    .stats-section {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+document.querySelector('.attendance-form').addEventListener('submit', function(e) {
+    const btn = this.querySelector('button[type="submit"]');
+    btn.classList.add('processing');
+});
+</script>
+{% endblock %}

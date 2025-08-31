@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="module-container">
+    <div class="module-card">
+        <div class="module-header">
+            <h2><i class="fas fa-book-open"></i> Add New Module</h2>
+            <p>Create a new module for your faculty</p>
+        </div>
+        
+        <form method="POST" class="module-form">
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="name">Module Name</label>
+                    <input type="text" id="name" name="name" 
+                           placeholder="Enter module name (e.g., Introduction to Programming)" required>
+                    <span class="input-hint">Enter the full module title</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="day_of_week">Day of Week</label>
+                    <select id="day_of_week" name="day_of_week" class="form-control" required>
+                        <option value="">Select Day</option>
+                        <option value="0">Monday</option>
+                        <option value="1">Tuesday</option>
+                        <option value="2">Wednesday</option>
+                        <option value="3">Thursday</option>
+                        <option value="4">Friday</option>
+                        <option value="5">Saturday</option>
+                        <option value="6">Sunday</option>
+                    </select>
+                    <span class="input-hint">Select the day this module occurs</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="start_time">Start Time</label>
+                    <div class="time-input-container">
+                        <i class="fas fa-clock clock-icon" onclick="document.getElementById('start_time').showPicker()"></i>
+                        <input type="time" id="start_time" name="start_time" required>
+                    </div>
+                    <span class="input-hint">Class start time</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="end_time">End Time</label>
+                    <div class="time-input-container">
+                        <i class="fas fa-clock clock-icon" onclick="document.getElementById('end_time').showPicker()"></i>
+                        <input type="time" id="end_time" name="end_time" required>
+                    </div>
+                    <span class="input-hint">Class end time</span>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-plus-circle"></i> Add Module
+                </button>
+                <a href="{{ url_for('lecturer_dashboard') }}" class="cancel-btn">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.module-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 100px);
+    padding: 30px 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.module-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px;
+    overflow: hidden;
+}
+
+.module-header {
+    background: linear-gradient(135deg, #4361ee, #3a56d4);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+.module-header h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.module-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.module-form {
+    padding: 30px;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.form-group {
+    flex: 1;
+    position: relative;
+}
+
+.form-group.full-width {
+    flex: 0 0 100%;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 0.95rem;
+}
+
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: #4361ee;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    transform: translateY(-1px);
+}
+
+.time-input-container {
+    position: relative;
+}
+
+.clock-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #718096;
+    z-index: 1;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.clock-icon:hover {
+    color: #4361ee;
+}
+
+.time-input-container input {
+    padding-left: 45px;
+}
+
+.input-hint {
+    display: block;
+    font-size: 0.8rem;
+    color: #718096;
+    margin-top: 6px;
+    font-style: italic;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, #4361ee, #3a56d4);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 6px rgba(67, 97, 238, 0.2);
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(67, 97, 238, 0.3);
+}
+
+.cancel-btn {
+    background: white;
+    color: #718096;
+    border: 2px solid #e2e8f0;
+    padding: 12px 26px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cancel-btn:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+    transform: translateY(-2px);
+    color: #4a5568;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .module-container {
+        padding: 20px 15px;
+    }
+    
+    .module-header {
+        padding: 20px;
+    }
+    
+    .module-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .module-form {
+        padding: 20px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .submit-btn, .cancel-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Time input styling for better browser compatibility */
+input[type="time"]::-webkit-calendar-picker-indicator {
+    background: none;
+    display: none;
+}
+
+input[type="time"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+/* Focus states for accessibility */
+.submit-btn:focus, .cancel-btn:focus {
+    outline: 2px solid #4361ee;
+    outline-offset: 2px;
+}
+
+.form-group input:focus, .form-group select:focus {
+    outline: 2px solid #4361ee;
+    outline-offset: -2px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.module-form');
+    const startTime = document.getElementById('start_time');
+    const endTime = document.getElementById('end_time');
+    
+    form.addEventListener('submit', function(e) {
+        if (startTime.value && endTime.value) {
+            const start = new Date('2000-01-01T' + startTime.value);
+            const end = new Date('2000-01-01T' + endTime.value);
+            
+            if (start >= end) {
+                e.preventDefault();
+                alert('End time must be after start time');
+                endTime.focus();
+            }
+        }
+    });
+    
+    // Add real-time validation
+    endTime.addEventListener('change', function() {
+        if (startTime.value && endTime.value) {
+            const start = new Date('2000-01-01T' + startTime.value);
+            const end = new Date('2000-01-01T' + endTime.value);
+            
+            if (start >= end) {
+                endTime.setCustomValidity('End time must be after start time');
+                endTime.style.borderColor = '#e53e3e';
+            } else {
+                endTime.setCustomValidity('');
+                endTime.style.borderColor = '#e2e8f0';
+            }
+        }
+    });
+    
+    // Make the clock icons clickable to open time picker
+    const clockIcons = document.querySelectorAll('.clock-icon');
+    clockIcons.forEach(icon => {
+        icon.addEventListener('click', function() {
+            const inputId = this.parentElement.querySelector('input').id;
+            document.getElementById(inputId).showPicker();
+        });
+    });
+});
+</script>
+{% endblock %}

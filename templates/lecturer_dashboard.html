@@ -1,0 +1,582 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1 class="dashboard-title">Lecturer Dashboard</h1>
+            <p class="dashboard-subtitle">
+                <i class="fas fa-calendar-alt me-2"></i>
+                {{ current_date.strftime('%A, %B %d, %Y') }}
+            </p>
+        </div>
+        <div class="user-avatar">
+            <i class="fas fa-user-tie"></i>
+        </div>
+    </div>
+
+    <!-- Welcome Card -->
+    <div class="welcome-card">
+        <div class="welcome-content">
+            <h2>Welcome back, <span class="highlight">{{ lecturer.name }}</span></h2>
+            <p class="faculty-info">
+                <i class="fas fa-university me-2"></i>
+                {{ lecturer.faculty }} Faculty
+            </p>
+        </div>
+        
+    </div>
+
+    <!-- Stats Dashboard -->
+    <div class="stats-grid">
+        <!-- Students Card -->
+        <div class="stat-card students">
+            <div class="stat-content">
+                <h3>Registered Students</h3>
+                <p class="stat-value">{{ student_count }}</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+
+        <!-- Attendance Card -->
+        <div class="stat-card attendance">
+            <div class="stat-content">
+                <h3>Today's Attendance</h3>
+                <p class="stat-value">{{ today_attendance }}</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+        </div>
+
+        <!-- Modules Card -->
+        <div class="stat-card modules">
+            <div class="stat-content">
+                <h3>Active Modules</h3>
+                <p class="stat-value">{{ modules|length }}</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-book"></i>
+            </div>
+        </div>
+
+        <!-- Quick Actions Card -->
+        <div class="stat-card actions">
+            <div class="stat-content">
+                <h3>Quick Actions</h3>
+                <div class="action-buttons">
+                    <a href="{{ url_for('add_module') }}" class="btn-sm btn-primary">
+                        Add Module
+                    </a>
+                    <a href="{{ url_for('list_students') }}" class="btn-sm btn-secondary">
+                        View Students
+                    </a>
+                </div>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Sections -->
+    <div class="content-grid">
+        <!-- Recent Attendance -->
+        <div class="content-card">
+            <div class="card-header">
+                <h2>Recent Attendance</h2>
+                <a href="{{ url_for('view_attendance') }}" class="view-all">
+                    View All <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_attendance %}
+                <div class="attendance-list">
+                    {% for record in recent_attendance %}
+                    <div class="attendance-item">
+                        <div class="student-info">
+                            <h4>{{ record.name }}</h4>
+                            <p>ID: {{ record.student_id }}</p>
+                        </div>
+                        <div class="attendance-meta">
+                            <span class="module-badge">{{ record.module }}</span>
+                            <p class="timestamp">{{ record.timestamp.strftime('%H:%M') }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-user-clock"></i>
+                    <p>No recent attendance records</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Active Modules -->
+        <div class="content-card">
+            <div class="card-header">
+                <h2>Active Modules</h2>
+                <a href="{{ url_for('list_modules') }}" class="view-all">
+                    Manage <i class="fas fa-cog"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                {% if modules %}
+                <div class="modules-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Module</th>
+                                <th>Day</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for module in modules %}
+                            <tr>
+                                <td>{{ module.name }}</td>
+                                <td>
+                                    {% if module.day_of_week == 0 %}Monday
+                                    {% elif module.day_of_week == 1 %}Tuesday
+                                    {% elif module.day_of_week == 2 %}Wednesday
+                                    {% elif module.day_of_week == 3 %}Thursday
+                                    {% elif module.day_of_week == 4 %}Friday
+                                    {% elif module.day_of_week == 5 %}Saturday
+                                    {% elif module.day_of_week == 6 %}Sunday
+                                    {% endif %}
+                                </td>
+                                <td>{{ module.start_time.strftime('%H:%M') }} - {{ module.end_time.strftime('%H:%M') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-book"></i>
+                    <p>No active modules</p>
+                    <a href="{{ url_for('add_module') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i> Add Module
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+:root {
+    --primary: #4361ee;
+    --primary-light: #eef2ff;
+    --secondary: #3a0ca3;
+    --success: #4cc9f0;
+    --warning: #f8961e;
+    --danger: #f94144;
+    --dark: #212529;
+    --light: #f8f9fa;
+    --gray: #6c757d;
+    --border: #dee2e6;
+}
+
+/* Base Styles */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #f5f7fb;
+    color: var(--dark);
+}
+
+/* Header Section */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.header-content {
+    flex: 1;
+}
+
+.dashboard-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 0.25rem;
+}
+
+.dashboard-subtitle {
+    color: var(--gray);
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+.user-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+/* Welcome Card */
+.welcome-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.welcome-content h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.highlight {
+    color: var(--primary);
+}
+
+.faculty-info {
+    color: var(--gray);
+    margin-bottom: 0;
+}
+
+.action-button {
+    background: var(--primary);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.action-button:hover {
+    background: var(--secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stat-content h3 {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--gray);
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 0;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.students .stat-icon {
+    background: rgba(67, 97, 238, 0.1);
+    color: var(--primary);
+}
+
+.attendance .stat-icon {
+    background: rgba(76, 201, 240, 0.1);
+    color: var(--success);
+}
+
+.modules .stat-icon {
+    background: rgba(248, 150, 30, 0.1);
+    color: var(--warning);
+}
+
+.actions .stat-icon {
+    background: rgba(249, 65, 68, 0.1);
+    color: var(--danger);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--secondary);
+}
+
+.btn-secondary {
+    background: var(--light);
+    color: var(--dark);
+    border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+    background: #e9ecef;
+}
+
+/* Content Grid */
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 992px) {
+    .content-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.content-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+.view-all {
+    color: var(--primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.view-all:hover {
+    text-decoration: underline;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Attendance List */
+.attendance-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.attendance-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.attendance-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.student-info h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.student-info p {
+    font-size: 0.875rem;
+    color: var(--gray);
+    margin-bottom: 0;
+}
+
+.attendance-meta {
+    text-align: right;
+}
+
+.module-badge {
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 0.25rem;
+}
+
+.timestamp {
+    font-size: 0.875rem;
+    color: var(--gray);
+    margin-bottom: 0;
+}
+
+/* Modules Table */
+.modules-table {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray);
+    border-bottom: 1px solid var(--border);
+}
+
+td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+.action-icon {
+    color: var(--primary);
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.action-icon:hover {
+    color: var(--secondary);
+    transform: scale(1.1);
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.empty-state i {
+    font-size: 2.5rem;
+    color: var(--gray);
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    color: var(--gray);
+    margin-bottom: 1.5rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .welcome-card {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .action-button {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .actions {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 576px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .actions {
+        grid-column: span 1;
+    }
+    
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .user-avatar {
+        align-self: flex-end;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="edit-student-container">
+    <h2>Edit Student Record</h2>
+    <p class="form-intro">Please update the student details below. Fields marked with * are required.</p>
+    
+    <form method="POST" class="edit-student-form">
+        <div class="form-group">
+            <label for="student_id">Student ID</label>
+            <input type="text" id="student_id" value="{{ student.student_id }}" readonly>
+        </div>
+        
+        <div class="form-group">
+            <label for="name">Full Name *</label>
+            <input type="text" id="name" name="name" value="{{ student.name }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="faculty">Faculty *</label>
+            <select id="faculty" name="faculty" required>
+                <option value="">Select Faculty</option>
+                {% for faculty in faculties %}
+                    <option value="{{ faculty }}" {% if faculty == student.faculty %}selected{% endif %}>
+                        {{ faculty }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="course">Course *</label>
+            <select id="course" name="course" required>
+                <option value="">Select Course</option>
+                {% for course in courses %}
+                    <option value="{{ course }}" {% if course == student.course %}selected{% endif %}>
+                        {{ course }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" value="{{ student.email }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone">Phone *</label>
+            <input type="tel" id="phone" name="phone" value="{{ student.phone }}"
+                   pattern="\d{10}" title="Phone number must be exactly 10 digits" required>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn save-btn">
+                Save Changes
+            </button>
+            <a href="{{ url_for('view_student', student_id=student.student_id) }}" class="btn cancel-btn">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+.edit-student-container {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 30px;
+    max-width: 650px;
+    margin: 40px auto;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.edit-student-container h2 {
+    font-size: 1.5rem;
+    color: #212529;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.form-intro {
+    font-size: 0.95rem;
+    color: #6c757d;
+    margin-bottom: 20px;
+}
+
+.edit-student-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select {
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    color: #212529;
+    background-color: #fff;
+}
+
+.form-group input:read-only {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: 0.3s;
+    text-align: center;
+}
+
+.save-btn {
+    background-color: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
+
+.save-btn:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+.cancel-btn {
+    background-color: #6c757d;
+    color: #fff;
+    border-color: #6c757d;
+}
+
+.cancel-btn:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+</style>
+
+<script>
+document.getElementById('faculty').addEventListener('change', function() {
+    const faculty = this.value;
+    const courseSelect = document.getElementById('course');
+    
+    if (faculty) {
+        fetch(`/get_courses/${encodeURIComponent(faculty)}`)
+            .then(response => response.json())
+            .then(courses => {
+                const currentValue = courseSelect.value;
+                courseSelect.innerHTML = '<option value="">Select Course</option>';
+                courses.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course;
+                    option.textContent = course;
+                    courseSelect.appendChild(option);
+                });
+                if (courses.includes(currentValue)) {
+                    courseSelect.value = currentValue;
+                }
+            });
+    } else {
+        courseSelect.innerHTML = '<option value="">Select Course</option>';
+    }
+});
+</script>
+{% endblock %}

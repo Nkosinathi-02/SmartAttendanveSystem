@@ -1,0 +1,681 @@
+{% extends "base.html" %}
+
+{% block title %}My Class Schedule - DUT Attendance System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Header Section -->
+            <div class="schedule-header">
+                <div class="header-content">
+                    <h1 class="page-title">
+                        <i class="fas fa-calendar-alt me-3"></i>
+                        My Class Schedule
+                    </h1>
+                    <p class="page-subtitle">
+                        Week of {{ week_days[0].strftime('%B %d, %Y') }} - {{ week_days[6].strftime('%B %d, %Y') }}
+                    </p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline-primary" onclick="window.print()">
+                        <i class="fas fa-print me-2"></i>Print Schedule
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div class="card search-card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-search me-2"></i>Search Modules
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <input type="text" id="moduleSearch" class="form-control" 
+                                       placeholder="Search for modules by name, lecturer, or time..." 
+                                       aria-label="Search modules">
+                                <button class="btn btn-primary" type="button" id="searchButton">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="dayFilter" class="form-select">
+                                <option value="">All Days</option>
+                                <option value="0">Monday</option>
+                                <option value="1">Tuesday</option>
+                                <option value="2">Wednesday</option>
+                                <option value="3">Thursday</option>
+                                <option value="4">Friday</option>
+                                <option value="5">Saturday</option>
+                                <option value="6">Sunday</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="search-results mt-3" id="searchResults" style="display: none;">
+                        <h6 class="results-title">Search Results</h6>
+                        <div class="results-list" id="resultsList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule Table -->
+            <div class="card schedule-card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table schedule-table">
+                            <thead>
+                                <tr>
+                                    <th class="time-column">Time</th>
+                                    {% for day in week_days %}
+                                    <th class="day-header">
+                                        <div class="day-name">{{ day.strftime('%A') }}</div>
+                                        <div class="day-date">{{ day.strftime('%d %b') }}</div>
+                                    </th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for hour in range(8, 18) %}
+                                <tr>
+                                    <td class="time-slot">
+                                        <span class="hour-label">{{ hour }}:00</span>
+                                        <span class="hour-separator">-</span>
+                                        <span class="hour-label">{{ hour+1 }}:00</span>
+                                    </td>
+                                    {% for day_index in range(7) %}
+                                    <td class="class-slot" data-hour="{{ hour }}" data-day="{{ day_index }}">
+                                        {% for module in schedule_grid[day_index][hour] %}
+                                            <div class="class-event" data-duration="{{ module.end_time.hour - module.start_time.hour }}"
+                                                 data-module-name="{{ module.name|lower }}"
+                                                 data-lecturer="{{ module.lecturer.name|lower }} {{ module.lecturer.surname|lower }}"
+                                                 data-day="{{ day_index }}"
+                                                 data-time="{{ module.start_time.strftime('%H:%M') }}-{{ module.end_time.strftime('%H:%M') }}">
+                                                <div class="class-header">
+                                                    <strong class="module-name">{{ module.name }}</strong>
+                                                    <span class="class-time">{{ module.start_time.strftime('%H:%M') }} - {{ module.end_time.strftime('%H:%M') }}</span>
+                                                </div>
+                                                <div class="class-details">
+                                                    <span class="lecturer-name">
+                                                        <i class="fas fa-user-tie me-1"></i>
+                                                        {{ module.lecturer.name }} {{ module.lecturer.surname }}
+                                                    </span>
+                                                    <span class="class-location">
+                                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                                        {{ module.faculty }} Building
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legend Section -->
+            <div class="schedule-legend">
+                <h6>Schedule Legend</h6>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #4361ee;"></div>
+                        <span>Class Session</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #4cc9f0;"></div>
+                        <span>Laboratory Session</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #f8961e;"></div>
+                        <span>Tutorial Session</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Search Card */
+.search-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.search-card .card-title {
+    color: #2d3748;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.search-results {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.results-title {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.75rem;
+}
+
+.results-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.result-item {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e9ecef;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.result-item:last-child {
+    border-bottom: none;
+}
+
+.result-item:hover {
+    background-color: #e9ecef;
+}
+
+.result-item.highlight {
+    background-color: #e3f2fd;
+    border-left: 4px solid #2196f3;
+}
+
+.result-module {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.result-details {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* Schedule Header */
+.schedule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1rem 0;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+    color: #718096;
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Schedule Card */
+.schedule-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+}
+
+.schedule-table {
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.schedule-table th {
+    background-color: #f7fafc;
+    border-bottom: 2px solid #e2e8f0;
+    font-weight: 600;
+    color: #2d3748;
+    padding: 1rem;
+    text-align: center;
+}
+
+.schedule-table td {
+    border: 1px solid #e2e8f0;
+    padding: 0.5rem;
+    vertical-align: top;
+    height: 80px;
+}
+
+/* Time Column */
+.time-column {
+    width: 120px;
+    background-color: #f7fafc;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.time-slot {
+    text-align: center;
+    padding: 1rem 0.5rem;
+}
+
+.hour-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.hour-separator {
+    display: block;
+    color: #a0aec0;
+    font-size: 0.8rem;
+    margin: 0.25rem 0;
+}
+
+/* Day Headers */
+.day-header {
+    text-align: center;
+    min-width: 140px;
+}
+
+.day-name {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 0.95rem;
+}
+
+.day-date {
+    color: #718096;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+/* Class Slots */
+.class-slot {
+    background-color: #ffffff;
+    transition: background-color 0.2s ease;
+    position: relative;
+}
+
+.class-slot:hover {
+    background-color: #f7fafc;
+}
+
+/* Class Events */
+.class-event {
+    background: linear-gradient(135deg, #4361ee, #3a56d4);
+    color: white;
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin: 0.25rem;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    height: calc(100% - 0.5rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+    right: 0.25rem;
+    z-index: 1;
+}
+
+.class-header {
+    margin-bottom: 0.5rem;
+}
+
+.module-name {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.class-time {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    display: block;
+}
+
+.class-details {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.lecturer-name, .class-location {
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+/* Schedule Legend */
+.schedule-legend {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.schedule-legend h6 {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1rem;
+}
+
+.legend-items {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+/* Highlight for search results */
+.class-event.highlight {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+    z-index: 2;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .schedule-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .schedule-table {
+        font-size: 0.8rem;
+    }
+    
+    .time-column {
+        width: 80px;
+    }
+    
+    .day-header {
+        min-width: 100px;
+    }
+    
+    .class-event {
+        padding: 0.5rem;
+        position: relative;
+        height: auto;
+    }
+    
+    .legend-items {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .schedule-table td {
+        height: 60px;
+        padding: 0.25rem;
+    }
+    
+    .class-event {
+        font-size: 0.75rem;
+        padding: 0.4rem;
+        position: relative;
+        height: auto;
+    }
+    
+    .module-name {
+        font-size: 0.8rem;
+    }
+    
+    .class-time {
+        font-size: 0.7rem;
+    }
+    
+    .class-details {
+        font-size: 0.65rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .schedule-header, .schedule-legend, .header-actions, .search-card {
+        display: none;
+    }
+    
+    .schedule-card {
+        border: none;
+        box-shadow: none;
+    }
+    
+    .schedule-table {
+        page-break-inside: avoid;
+    }
+    
+    .class-event {
+        background: #f0f4f8 !important;
+        color: #000 !important;
+        border: 1px solid #cbd5e0;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add alternating row colors for better readability
+    const rows = document.querySelectorAll('.schedule-table tbody tr');
+    rows.forEach((row, index) => {
+        if (index % 2 === 0) {
+            row.style.backgroundColor = '#fafafa';
+        }
+    });
+    
+    // Highlight current day
+    const today = new Date();
+    const dayIndex = today.getDay() - 1; // Adjust for Monday start (0=Monday, 6=Sunday)
+    if (dayIndex >= 0 && dayIndex < 7) {
+        const dayHeaders = document.querySelectorAll('.day-header');
+        if (dayHeaders[dayIndex]) {
+            dayHeaders[dayIndex].style.backgroundColor = '#e6fffa';
+            dayHeaders[dayIndex].style.borderLeft = '3px solid #38b2ac';
+            dayHeaders[dayIndex].style.borderRight = '3px solid #38b2ac';
+        }
+    }
+    
+    // Span class events across multiple hours based on duration
+    const classEvents = document.querySelectorAll('.class-event');
+    classEvents.forEach(event => {
+        const duration = parseInt(event.getAttribute('data-duration')) || 1;
+        if (duration > 1) {
+            const cell = event.closest('.class-slot');
+            const hour = parseInt(cell.getAttribute('data-hour'));
+            const day = parseInt(cell.getAttribute('data-day'));
+            
+            // Set the rowspan for the cell
+            cell.rowSpan = duration;
+            
+            // Adjust the height of the event to span multiple rows
+            event.style.height = `calc(${duration * 100}% - ${duration * 0.5}rem)`;
+            
+            // Hide the cells that will be covered by the rowspan
+            for (let i = 1; i < duration; i++) {
+                const nextRow = cell.parentElement.nextElementSibling;
+                if (nextRow) {
+                    const nextCell = nextRow.querySelector(`.class-slot[data-day="${day}"]`);
+                    if (nextCell) {
+                        nextCell.style.display = 'none';
+                    }
+                }
+            }
+        }
+        
+        // Add hover effects
+        event.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
+        });
+        
+        event.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+        });
+    });
+    
+    // Module Search Functionality
+    const searchInput = document.getElementById('moduleSearch');
+    const searchButton = document.getElementById('searchButton');
+    const dayFilter = document.getElementById('dayFilter');
+    const searchResults = document.getElementById('searchResults');
+    const resultsList = document.getElementById('resultsList');
+    
+    function performSearch() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const selectedDay = dayFilter.value;
+        
+        // Clear previous results
+        resultsList.innerHTML = '';
+        searchResults.style.display = 'none';
+        
+        // Remove previous highlights
+        document.querySelectorAll('.class-event.highlight').forEach(el => {
+            el.classList.remove('highlight');
+        });
+        
+        if (!searchTerm && !selectedDay) {
+            return;
+        }
+        
+        const matchingModules = [];
+        
+        // Search through all class events
+        classEvents.forEach(event => {
+            const moduleName = event.getAttribute('data-module-name');
+            const lecturer = event.getAttribute('data-lecturer');
+            const day = event.getAttribute('data-day');
+            const time = event.getAttribute('data-time');
+            
+            const matchesSearch = !searchTerm || 
+                moduleName.includes(searchTerm) || 
+                lecturer.includes(searchTerm) ||
+                time.includes(searchTerm);
+                
+            const matchesDay = !selectedDay || day === selectedDay;
+            
+            if (matchesSearch && matchesDay) {
+                matchingModules.push({
+                    element: event,
+                    name: event.querySelector('.module-name').textContent,
+                    lecturer: event.querySelector('.lecturer-name').textContent,
+                    time: event.querySelector('.class-time').textContent,
+                    day: day
+                });
+                
+                // Highlight the matching event
+                event.classList.add('highlight');
+            }
+        });
+        
+        // Display search results
+        if (matchingModules.length > 0) {
+            searchResults.style.display = 'block';
+            
+            matchingModules.forEach(module => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.innerHTML = `
+                    <div class="result-module">${module.name}</div>
+                    <div class="result-details">
+                        ${module.lecturer} | ${module.time} | 
+                        ${getDayName(module.day)}
+                    </div>
+                `;
+                
+                resultItem.addEventListener('click', () => {
+                    // Scroll to the module
+                    module.element.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    
+                    // Add temporary highlight
+                    module.element.style.animation = 'pulse 2s';
+                    setTimeout(() => {
+                        module.element.style.animation = '';
+                    }, 2000);
+                });
+                
+                resultsList.appendChild(resultItem);
+            });
+        } else {
+            searchResults.style.display = 'block';
+            resultsList.innerHTML = `
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-search fa-2x mb-2"></i>
+                    <p>No modules found matching your search criteria.</p>
+                </div>
+            `;
+        }
+    }
+    
+    function getDayName(dayIndex) {
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        return days[parseInt(dayIndex)] || 'Unknown';
+    }
+    
+    // Event listeners for search
+    searchButton.addEventListener('click', performSearch);
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+    dayFilter.addEventListener('change', performSearch);
+    
+    // Add CSS animation for pulse effect
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .class-event.highlight {
+            animation: pulse 2s infinite;
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+{% endblock %}

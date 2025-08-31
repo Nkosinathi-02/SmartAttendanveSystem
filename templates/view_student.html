@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="student-profile-container">
+    <div class="profile-card">
+        <div class="profile-header">
+            <div class="profile-photo">
+                <img src="{{ url_for('static', filename='encodings/' + student.student_id + '.jpg') }}" 
+                     alt="{{ student.name }}" 
+                     onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/default-user.png') }}'">
+            </div>
+            <div class="profile-info">
+                <h2 class="student-name">{{ student.name }}</h2>
+                <p class="student-course">{{ student.course }} | {{ student.faculty }}</p>
+                <p class="student-id">ID: {{ student.student_id }}</p>
+            </div>
+        </div>
+
+        <div class="profile-details">
+            <div class="detail-row">
+                <span class="detail-label"><i class="fas fa-envelope"></i> Email:</span>
+                <span class="detail-value">{{ student.email }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label"><i class="fas fa-phone"></i> Phone:</span>
+                <span class="detail-value">{{ student.phone }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label"><i class="fas fa-calendar-check"></i> Date Registered:</span>
+                <span class="detail-value">{{ student.date_registered.strftime('%Y-%m-%d') }}</span>
+            </div>
+        </div>
+
+        <div class="profile-actions">
+            <a href="{{ url_for('edit_student', student_id=student.student_id) }}" class="btn edit-btn">
+                <i class="fas fa-edit"></i> Edit Profile
+            </a>
+            <a href="{{ url_for('home') }}" class="btn back-btn">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.student-profile-container {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+    background: #f8f9fa;
+}
+
+.profile-card {
+    background: #fff;
+    border-radius: 15px;
+    padding: 30px;
+    max-width: 700px;
+    width: 100%;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.profile-photo img {
+    width: 160px;
+    height: 200px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 3px solid #ddd;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.student-name {
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin: 0;
+    font-weight: 700;
+}
+
+.student-course {
+    font-size: 1rem;
+    color: #6c757d;
+    margin: 5px 0;
+}
+
+.student-id {
+    font-size: 0.95rem;
+    color: #888;
+}
+
+.profile-details {
+    margin-top: 15px;
+}
+
+.detail-row {
+    display: flex;
+    margin: 12px 0;
+    font-size: 1rem;
+}
+
+.detail-label {
+    font-weight: 600;
+    width: 180px;
+    color: #495057;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detail-value {
+    flex: 1;
+    color: #212529;
+}
+
+.profile-actions {
+    margin-top: 25px;
+    display: flex;
+    gap: 15px;
+}
+
+.btn {
+    text-decoration: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.3s;
+}
+
+.edit-btn {
+    background: #ffc107;
+    color: #212529;
+}
+
+.edit-btn:hover {
+    background: #e0a800;
+    transform: translateY(-2px);
+}
+
+.back-btn {
+    background: #6c757d;
+    color: #fff;
+}
+
+.back-btn:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .profile-photo img {
+        width: 120px;
+        height: 150px;
+    }
+
+    .detail-label {
+        width: 140px;
+    }
+}
+</style>
+{% endblock %}

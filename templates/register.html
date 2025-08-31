@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="registration-container">
+    <div class="registration-card">
+        <h2 class="registration-title">Register New Student</h2>
+        
+        <div class="registration-content">
+            <!-- Form Section -->
+            <div class="form-section">
+                <form method="POST" id="registerForm" class="student-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="student_id">Student ID</label>
+                            <input type="text" id="student_id" name="student_id" 
+                                   placeholder="Enter 8-digit ID" 
+                                   pattern="\d{8}" 
+                                   title="Student ID must be exactly 8 digits" required>
+                            <span class="input-hint">Must be 8 digits</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" name="name" 
+                                   placeholder="Enter full name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="faculty">Faculty</label>
+                            <select id="faculty" name="faculty" required>
+                                <option value="">Select Faculty</option>
+                                {% for faculty in faculties %}
+                                    <option value="{{ faculty }}" {% if faculty == selected_faculty %}selected{% endif %}>
+                                        {{ faculty }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="course">Course</label>
+                            <select id="course" name="course" required>
+                                <option value="">Select Course</option>
+                                {% for course in courses %}
+                                    <option value="{{ course }}" {% if course == selected_course %}selected{% endif %}>
+                                        {{ course }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" 
+                                   placeholder="student@example.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <input type="tel" id="phone" name="phone" 
+                                   placeholder="Enter 10-digit number" 
+                                   pattern="\d{10}" 
+                                   title="Phone number must be exactly 10 digits">
+                            <span class="input-hint">10 digits only</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Add Password Fields Here -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" 
+                                   placeholder="Enter password (min. 8 characters)"
+                                   minlength="8" required>
+                            <span class="input-hint">Minimum 8 characters</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirm_password">Confirm Password</label>
+                            <input type="password" id="confirm_password" name="confirm_password" 
+                                   placeholder="Confirm your password" required>
+                            <span class="input-hint">Must match password</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">
+                            <i class="fas fa-user-plus"></i> Register Student
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Camera Section -->
+            <div class="camera-section">
+                <div class="camera-header">
+                    <h3><i class="fas fa-camera"></i> Face Capture</h3>
+                    <p>Position face in the center</p>
+                </div>
+                <div class="camera-feed">
+                    <img src="{{ url_for('video_feed') }}" alt="Camera feed">
+                </div>
+                <div class="camera-instructions">
+                    <p><i class="fas fa-lightbulb"></i> Ensure good lighting and remove glasses if possible</p>
+                </div>
+            </div>
+        </div>
+        <p class="register-link">Already Registered? <a href="{{ url_for('login_student') }}">Log In here</a></p>
+        <br><br>
+    </div>
+    
+</div>
+
+
+<script>
+document.getElementById('faculty').addEventListener('change', function() {
+    const faculty = this.value;
+    const courseSelect = document.getElementById('course');
+    
+    if (faculty) {
+        fetch(`/get_courses/${encodeURIComponent(faculty)}`)
+            .then(response => response.json())
+            .then(courses => {
+                courseSelect.innerHTML = '<option value="">Select Course</option>';
+                courses.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course;
+                    option.textContent = course;
+                    courseSelect.appendChild(option);
+                });
+            });
+    } else {
+        courseSelect.innerHTML = '<option value="">Select Course</option>';
+    }
+});
+
+// Add password validation script
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('registerForm');
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirm_password');
+    
+    form.addEventListener('submit', function(e) {
+        if (password.value !== confirmPassword.value) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+            confirmPassword.focus();
+        }
+    });
+    
+    // Real-time password matching feedback
+    confirmPassword.addEventListener('input', function() {
+        if (password.value !== confirmPassword.value) {
+            confirmPassword.setCustomValidity('Passwords do not match');
+        } else {
+            confirmPassword.setCustomValidity('');
+        }
+    });
+});
+</script>
+
+<style>
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --accent-color: #4cc9f0;
+    --light-gray: #f5f7fa;
+    --dark-gray: #6c757d;
+    --border-color: #e0e0e0;
+    --success-color: #28a745;
+}
+
+.registration-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: var(--light-gray);
+}
+
+.registration-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 1000px;
+    overflow: hidden;
+}
+
+.registration-title {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 20px;
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.registration-content {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.form-section {
+    flex: 1;
+    min-width: 300px;
+    padding: 25px;
+    border-right: 1px solid var(--border-color);
+}
+
+.camera-section {
+    flex: 1;
+    min-width: 300px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+}
+
+.student-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-group {
+    flex: 1;
+    margin-bottom: 10px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--dark-gray);
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+}
+
+.input-hint {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--dark-gray);
+    margin-top: 5px;
+}
+
+.form-actions {
+    margin-top: 10px;
+}
+
+.submit-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.submit-btn:hover {
+    background-color: var(--secondary-color);
+}
+
+.camera-header {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.camera-header h3 {
+    color: var(--primary-color);
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.camera-header p {
+    color: var(--dark-gray);
+    font-size: 0.9rem;
+}
+
+.camera-feed {
+    background: #000;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.camera-feed img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.camera-instructions {
+    background-color: #f8f9fa;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: var(--dark-gray);
+    text-align: center;
+}
+
+.camera-instructions i {
+    color: var(--primary-color);
+    margin-right: 5px;
+}
+
+@media (max-width: 768px) {
+    .registration-content {
+        flex-direction: column;
+    }
+    
+    .form-section {
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .camera-feed img {
+        max-height: 300px;
+        object-fit: contain;
+    }
+    
+}
+.register-link {
+    text-align: center;
+    margin-top: 20px;
+}
+</style>
+{% endblock %}

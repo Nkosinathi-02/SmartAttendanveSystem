@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="records-container">
+    <h2>Attendance Records</h2>
+    
+    <!-- Search and Download Section -->
+    <div class="search-download-container">
+        <!-- Search Form -->
+        <div class="search-container">
+            <form method="GET" action="{{ url_for('view_attendance') }}">
+                <div class="search-fields">
+                    <!-- In your view.html template, change the module dropdown to: -->
+<div class="form-group">
+    <label for="module">Module:</label>
+    <select id="module" name="module">
+        <option value="">All Modules</option>
+        {% for module in modules %}
+            <option value="{{ module }}" {% if module == selected_module %}selected{% endif %}>
+                {{ module }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
+                    
+                    <div class="form-group">
+                        <label for="date">Date:</label>
+                        <input type="date" id="date" name="date" value="{{ selected_date }}">
+                    </div>
+                    
+                    <button type="submit" class="search-btn">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    
+                    <a href="{{ url_for('view_attendance') }}" class="reset-btn">
+                        <i class="fas fa-undo"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Download Button -->
+        <div class="download-container">
+            <a href="{{ url_for('download_attendance', module=selected_module, date=selected_date) }}" 
+               class="download-btn">
+                <i class="fas fa-file-excel"></i> Export to Excel
+            </a>
+        </div>
+    </div>
+    
+    <!-- Attendance Records Table -->
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Module</th>
+                    <th>Date/Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records.items %}
+                <tr>
+                    <td>{{ record.student_id }}</td>
+                    <td>{{ record.name }}</td>
+                    <td>{{ record.module }}</td>
+                    <td>{{ record.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="no-records">No attendance records found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if records.pages > 1 %}
+    <div class="pagination">
+        {% if records.has_prev %}
+            <a href="{{ url_for('view_attendance', page=records.prev_num, module=selected_module, date=selected_date) }}" 
+               class="page-link">
+                &laquo; Previous
+            </a>
+        {% endif %}
+        
+        {% for page_num in records.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+                {% if records.page == page_num %}
+                    <span class="current-page">{{ page_num }}</span>
+                {% else %}
+                    <a href="{{ url_for('view_attendance', page=page_num, module=selected_module, date=selected_date) }}" 
+                       class="page-link">
+                        {{ page_num }}
+                    </a>
+                {% endif %}
+            {% else %}
+                <span class="ellipsis">...</span>
+            {% endif %}
+        {% endfor %}
+        
+        {% if records.has_next %}
+            <a href="{{ url_for('view_attendance', page=records.next_num, module=selected_module, date=selected_date) }}" 
+               class="page-link">
+                Next &raquo;
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.records-container {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.records-container h2 {
+    font-size: 1.5rem;
+    color: #444;
+    margin-bottom: 20px;
+}
+
+.search-download-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.search-container {
+    flex: 1;
+    min-width: 300px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.download-container {
+    padding: 15px;
+}
+
+.search-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #555;
+}
+
+.form-group select,
+.form-group input[type="date"] {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.search-btn, .reset-btn, .download-btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.search-btn {
+    background-color: #4361ee;
+    color: white;
+}
+
+.search-btn:hover {
+    background-color: #3a56d4;
+    transform: translateY(-1px);
+}
+
+.reset-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+.reset-btn:hover {
+    background-color: #5a6268;
+    transform: translateY(-1px);
+}
+
+.download-btn {
+    background-color: #1d6f42;
+    color: white;
+    white-space: nowrap;
+}
+
+.download-btn:hover {
+    background-color: #165c36;
+    transform: translateY(-1px);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #555;
+}
+
+tr:hover {
+    background-color: #f5f7fa;
+}
+
+.no-records {
+    text-align: center;
+    color: #777;
+    padding: 20px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.page-link {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #4361ee;
+}
+
+.page-link:hover {
+    background-color: #f0f2f5;
+}
+
+.current-page {
+    padding: 8px 12px;
+    background-color: #4361ee;
+    color: white;
+    border-radius: 4px;
+}
+
+.ellipsis {
+    padding: 8px 5px;
+}
+
+@media (max-width: 768px) {
+    .search-download-container {
+        flex-direction: column;
+    }
+    
+    .search-container, .download-container {
+        width: 100%;
+    }
+    
+    .search-fields {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .form-group {
+        min-width: auto;
+    }
+    
+    .search-btn, .reset-btn, .download-btn {
+        justify-content: center;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+    }
+}
+</style>
+{% endblock %}
